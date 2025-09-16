@@ -24,7 +24,7 @@ const createConversation = async (id) => {
 };
 
 const getConversationByUserId = async (userId) => {
-  const query = `select c. * from conversation c left join conversation_members cm on c.conversation_id = cm.conversation_id where cm.user_id = $1 order by c.updated_at desc `;
+  const query = `select c. * from conversations c left join conversation_members cm on c.conversation_id = cm.conversation_id where cm.user_id = $1 order by c.updated_at desc `;
   const result = await pool.query(query, [userId]);
 
   return result.rows;

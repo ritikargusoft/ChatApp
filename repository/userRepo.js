@@ -25,7 +25,7 @@ const createUser = async (fullname, email, password) => {
   const newUserId = result.rows[0].user_id;
   const updateQuery = `
       UPDATE users
-      SET created_by = $1, update_by = $1
+      SET created_by = $1, updated_by = $1
       WHERE user_id = $1
     `;
   await pool.query(updateQuery, [newUserId]);

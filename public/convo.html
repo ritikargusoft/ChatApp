@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Conversations - SocketChat</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>My Conversations</h1>
+      <button id="btnNew">New Conversation</button>
+      <div id="dialog" style="display: none">
+        <div>
+          <span id="close">X</span>
+          <h2>Select User</h2>
+          <div>
+            <input type="text" id="userSearch" />
+            <div id="results"></div>
+          </div>
+          <h5>Selected Users</h5>
+          <div id="selectedUsers"></div>
+          <button id="saveUsers">Save</button>
+        </div>
+      </div>
+    </header>
+    <ul id="convoList"></ul>
+    <script src="script/convo.js"></script>
+  </body>
+</html>
