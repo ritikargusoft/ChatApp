@@ -4,18 +4,18 @@ const { io } = require("../socket");
 
 
 const createMessage = async (req, res) => {
-  const { message_content } = req.body;
-  let conversation_id = req.params.conversationId;
-  const convId = conversation_id.conversationId;
-  const sender_id = req.user.id;
+  // const { message_content } = req.body;
+  // let conversation_id = req.params.conversationId;
+  // const convId = conversation_id.conversationId;
+  // const sender_id = req.user.id;
 
-  const message = await service.createMessageService({
-    message_content,
-    conversation_id,
-    sender_id,
-  });
-  io.to(conversation_id).emit("Message created", message);
-  res.status(StatusCodes.CREATED).json({ success: true, data: message });
+  // const message = await service.createMessageService({
+  //   message_content,
+  //   conversation_id,
+  //   sender_id,
+  // });
+  // io.to(conversation_id).emit("Message created", message);
+  // res.status(StatusCodes.CREATED).json({ success: true, data: message });
 };
 
 const getMessagesByConversationId = async (req, res) => {

@@ -1,29 +1,400 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Conversations - SocketChat</title>
-    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      .navbar-brand {
+        font-weight: 700;
+      }
+      .conversation-list {
+        max-height: calc(100vh - 180px);
+        overflow-y: auto;
+      }
+      .conversation-item {
+        transition: all 0.2s;
+        cursor: pointer;
+        border-radius: 8px;
+        margin-bottom: 8px;
+      }
+      .conversation-item:hover {
+        background-color: #e9ecef;
+      }
+      .conversation-item.active {
+        background-color: #e3f2fd;
+        border-left: 4px solid #0d6efd;
+      }
+      .user-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background-color: #0d6efd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 18px;
+      }
+      .last-message {
+        font-size: 0.9rem;
+        color: #6c757d;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+      }
+      .modal-content {
+        border-radius: 10px;
+      }
+      .search-result-item {
+        cursor: pointer;
+        transition: background-color 0.2s;
+        border-radius: 5px;
+        padding: 8px 10px;
+      }
+      .search-result-item:hover {
+        background-color: #f8f9fa;
+      }
+      .selected-user {
+        background-color: #e9ecef;
+        border-radius: 20px;
+        padding: 5px 15px;
+        margin: 5px;
+        display: inline-flex;
+        align-items: center;
+      }
+    </style>
   </head>
   <body>
-    <header>
-      <h1>My Conversations</h1>
-      <button id="btnNew">New Conversation</button>
-      <div id="dialog" style="display: none">
-        <div>
-          <span id="close">X</span>
-          <h2>Select User</h2>
-          <div>
-            <input type="text" id="userSearch" />
-            <div id="results"></div>
-          </div>
-          <h5>Selected Users</h5>
-          <div id="selectedUsers"></div>
-          <button id="saveUsers">Save</button>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <a class="navbar-brand" href="#">
+          <i class="fas fa-comments me-2"></i>SocketChat
+        </a>
+        <div class="navbar-nav ms-auto">
+          <span class="navbar-text me-3">
+            <i class="fas fa-user me-1"></i> <span id="username">User {}</span>
+          </span>
+          <button id="btnNew" class="btn btn-light btn-sm">
+            <i class="fas fa-plus me-1"></i>New Chat
+          </button>
+          <button id="logoutBtn" class="btn btn-outline-light btn-sm ms-2">
+            <i class="fas fa-sign-out-alt me-1"></i>Logout
+          </button>
         </div>
       </div>
-    </header>
-    <ul id="convoList"></ul>
-    <script src="script/convo.js"></script>
+    </nav>
+
+    <div class="container mt-4">
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <div class="card shadow-sm">
+            <div class="card-header bg-white py-3">
+              <h5 class="mb-0">
+                <i class="fas fa-comments me-2 text-primary"></i>Your
+                Conversations
+              </h5>
+            </div>
+            <div class="card-body p-0">
+              <div class="conversation-list" id="convoList">
+                <div class="text-center py-5">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  <p class="mt-2 text-muted">Loading conversations...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="newConvoModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Start New Conversation</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Search Users</label>
+              <div class="input-group">
+                <span class="input-group-text"
+                  ><i class="fas fa-search"></i
+                ></span>
+                <input type="text" id="userSearch" class="form-control"
+                placeholderType to search users">
+              </div>
+              <div id="results" class="mt-2"></div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Selected Users</label>
+              <div id="selectedUsers" class="d-flex flex-wrap"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button id="saveUsers" class="btn btn-primary">
+              <i class="fas fa-check me-1"></i>Start Conversation
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
+      const username = localStorage.getItem("username") || "User";
+
+      document.getElementById("username").textContent = username;
+
+      if (!token) {
+        window.location.href = "login.html";
+      }
+
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("username");
+        localStorage.removeItem("activeConversation");
+        window.location.href = "login.html";
+      });
+
+      async function loadConversations() {
+        try {
+          const res = await fetch("/conversations", {
+            headers: { Authorization: `${token}` },
+          });
+          const data = await res.json();
+          const list = document.getElementById("convoList");
+
+          if (data.data.length === 0) {
+            list.innerHTML = `
+                        <div class="text-center py-5">
+                            <i class="fas fa-comments fa-2x text-muted mb-3"></i>
+                            <p class="text-muted">No conversations yet</p>
+                        </div>
+                    `;
+            return;
+          }
+
+          list.innerHTML = "";
+          data.data.forEach((convo) => {
+            const convoElement = createConvoElement(convo);
+            list.appendChild(convoElement);
+          });
+        } catch (error) {
+          console.error("Failed to load conversations:", error);
+        }
+      }
+
+      function createConvoElement(convo) {
+        const div = document.createElement("div");
+        div.className = "conversation-item p-3";
+        div.dataset.convoId = convo.conversation_id;
+
+        div.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="user-avatar me-3">${
+                      convo.conversation_title
+                        ? convo.conversation_title.charAt(0).toUpperCase()
+                        : "G"
+                    }</div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-0">${
+                          convo.conversation_title || "Group Chat"
+                        }</h6>
+                        <p class="last-message mb-0">Click to open conversation</p>
+                    </div>
+                    <div class="text-muted small">${formatTime(
+                      convo.updated_at
+                    )}</div>
+                </div>
+            `;
+
+        div.addEventListener("click", () => {
+          localStorage.setItem("activeConversation", convo.conversation_id);
+          window.location.href = "chat.html";
+        });
+
+        return div;
+      }
+
+      function formatTime(timestamp) {
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      document.getElementById("btnNew").addEventListener("click", () => {
+        new bootstrap.Modal(document.getElementById("newConvoModal")).show();
+      });
+
+      let allUsers = [];
+      let selectedUserIds = [];
+
+      document
+        .getElementById("userSearch")
+        .addEventListener("focus", async () => {
+          if (allUsers.length === 0) {
+            try {
+              const res = await fetch("/users", {
+                headers: { Authorization: `${token}` },
+              });
+              const users = await res.json();
+              allUsers = users.filter((element) => element.user_id != userId);
+            } catch (error) {
+              console.log(error);
+            }
+          }
+          showResults(allUsers);
+        });
+
+      document.getElementById("userSearch").addEventListener("input", () => {
+        const query = document.getElementById("userSearch").value.toLowerCase();
+        const filtered = allUsers.filter(
+          (user) =>
+            user.fullname.toLowerCase().includes(query) &&
+            !selectedUserIds.includes(user.user_id)
+        );
+        showResults(filtered);
+        Logout;
+      });
+
+      function setUserName(name) {
+        const usernameSpan = document.getElementById("username");
+        if (usernameSpan) {
+          usernameSpan.textContent = name;
+        }
+      }
+
+      const user1 = localStorage.getItem("userId");
+      const user2 = localStorage.getItem("fullname");
+      setUserName("User");
+
+      function showResults(users) {
+        const resultsContainer = document.getElementById("results");
+        resultsContainer.innerHTML = "";
+
+        if (users.length === 0) {
+          resultsContainer.innerHTML =
+            '<div class="text-center p-2 text-muted">No users found</div>';
+          return;
+        }
+
+        users.forEach((user) => {
+          const div = document.createElement("div");
+          div.className = "search-result-item d-flex align-items-center p-2";
+          div.innerHTML = `
+                    <div class="user-avatar me-2">${user.fullname
+                      .charAt(0)
+                      .toUpperCase()}</div>
+                    <div class="flex-grow-1">${user.fullname}</div>
+                `;
+          div.addEventListener("click", () => {
+            addUser(user);
+          });
+          resultsContainer.appendChild(div);
+        });
+      }
+
+      function addUser(user) {
+        if (selectedUserIds.includes(user.user_id)) return;
+
+        selectedUserIds.push(user.user_id);
+
+        const selectedUserDiv = document.createElement("div");
+        selectedUserDiv.className = "selected-user";
+        selectedUserDiv.innerHTML = `
+                ${user.fullname}
+                <button type="button" class="btn-close btn-sm ms-1" data-user-id="${user.user_id}"></button>
+            `;
+
+        selectedUserDiv
+          .querySelector("button")
+          .addEventListener("click", (e) => {
+            e.stopPropagation();
+            removeUser(user.user_id);
+            selectedUserDiv.remove();
+          });
+
+        document.getElementById("selectedUsers").appendChild(selectedUserDiv);
+        document.getElementById("userSearch").value = "";
+        showResults(
+          allUsers.filter((u) => !selectedUserIds.includes(u.user_id))
+        );
+      }
+
+      function removeUser(userId) {
+        selectedUserIds = selectedUserIds.filter((id) => id !== userId);
+      }
+
+      document
+        .getElementById("saveUsers")
+        .addEventListener("click", async () => {
+          if (selectedUserIds.length === 0) {
+            alert("Select at least one user");
+            return;
+          }
+
+          try {
+            const res = await fetch("/conversations", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `${token}`,
+              },
+              body: JSON.stringify({ dataMembers: selectedUserIds }),
+            });
+
+            if (res.ok) {
+              bootstrap.Modal.getInstance(
+                document.getElementById("newConvoModal")
+              ).hide();
+              selectedUserIds = [];
+              document.getElementById("selectedUsers").innerHTML = "";
+
+              loadConversations();
+            } else {
+              console.error("Failed to create conversation");
+            }
+          } catch (error) {
+            console.error(error);
+          }
+        });
+
+      loadConversations();
+    </script>
   </body>
 </html>

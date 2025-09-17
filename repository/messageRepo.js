@@ -12,7 +12,7 @@ const createMessageTable = async () => {
         created_at timestamp default current_timestamp,
         created_by int,
         updated_at timestamp default current_timestamp,
-        update_by int
+        updated_by int
         )`;
 
     await pool.query(query);
